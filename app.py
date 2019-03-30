@@ -2,6 +2,7 @@ import requests
 import json
 import webbrowser
 import time
+import datetime
 import os
 from os import system
 
@@ -12,7 +13,7 @@ os.system('cls')
 system('title Twitch Stalkr v1.0')
 
 streamer_name = input('Streamer to stalk: ')
-client_id = '' # your twitch client_id
+client_id = '' # your twitch client id
 streamer_url = 'https://twitch.tv/{}'.format(streamer_name)
 
 system('title Stalking {}'.format(streamer_name.capitalize()))
@@ -28,13 +29,32 @@ def check_status():
 
     if is_streaming(streamer_name):
         if os.path.exists(temp_file):
-            print('{} is online, checking again in 5 seconds'.format(streamer_name))
+
+            with open(temp_file, 'r') as start_time:
+                start_time = start_time.readline()
+
+            start_time = float(start_time)
+            current_time = time.time()
+
+            stream_duration = current_time - start_time
+            stream_duration = int(stream_duration)
+
+            duration_hours = stream_duration // 3600
+            duration_minutes = (stream_duration - (duration_hours * 3600)) // 60
+            duration_seconds = stream_duration - ((duration_hours * 3600) + (duration_minutes * 60))
+
+            print('{} has been streaming for: {} hours, {} minutes, and {} seconds.'.format(streamer_name.capitalize(), duration_hours, duration_minutes, duration_seconds))
             pass
 
         if not os.path.exists(temp_file):
             print('{} is online, opening in your default browser'.format(streamer_name))
-            temp_file = open(temp_file, 'w+')
+            start_time = time.time()
+
+            with open(temp_file, 'w+') as timestamp:
+                timestamp.write(str(start_time))
+
             webbrowser.open_new_tab(streamer_url)
+
             time.sleep(5)
 
     if not is_streaming(streamer_name):
