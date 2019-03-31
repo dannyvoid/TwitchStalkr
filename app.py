@@ -1,10 +1,11 @@
-import os
-import time
 import json
+import os
 import requests
+import time
 import webbrowser
-from configparser import ConfigParser
+
 from apscheduler.schedulers.background import BackgroundScheduler
+from configparser import ConfigParser
 
 os.system('cls')
 os.system('title Twitch Stalkr v1.0')
