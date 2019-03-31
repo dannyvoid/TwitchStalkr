@@ -1,21 +1,19 @@
-import requests
-import json
-import webbrowser
-import time
 import os
-from os import system
+import time
+import json
+import requests
+import webbrowser
 from configparser import ConfigParser
-
 from apscheduler.schedulers.background import BackgroundScheduler
 
 os.system('cls')
-system('title Twitch Stalkr v1.0')
+os.system('title Twitch Stalkr v1.0')
 
 config = ConfigParser()
 config.read('config.ini')
 
-client_id = config.get('stalker', 'client_id')
-stalking_interval = config.get('stalker', 'interval_in_seconds')
+client_id = config.get('default', 'client_id')
+stalking_interval = config.get('default', 'interval_in_seconds')
 streamer_name = config.get('default', 'streamer_name')
 
 if not streamer_name:
@@ -25,17 +23,22 @@ else:
 
 streamer_url = 'https://twitch.tv/{}'.format(streamer_name)
 
-system('title Stalking {}'.format(streamer_name.capitalize()))
+os.system('title Stalking {}'.format(streamer_name.capitalize()))
+
 
 def is_streaming(streamer_name):
-    twitch_api_stream_url = 'https://api.twitch.tv/kraken/streams/{}?client_id={}'.format(streamer_name, client_id)
+    twitch_api_stream_url = 'https://api.twitch.tv/kraken/streams/{}?client_id={}'.format(
+        streamer_name, client_id)
     streamer_html = requests.get(twitch_api_stream_url)
     streamer = json.loads(streamer_html.content)
     return streamer['stream'] is not None
 
+
 def check_status():
-    temp_file_location = config.get('stalker', 'temp_file')
-    temp_file = os.path.join('{}.{}'.format(temp_file_location, streamer_name))
+    temp_file_dir = config.get('temp_file', 'directory')
+    temp_file_prefix = config.get('temp_file', 'file_prefix')
+    temp_file = os.path.join(temp_file_dir, '{}.{}'.format(
+        temp_file_prefix, streamer_name))
 
     if is_streaming(streamer_name):
         if os.path.exists(temp_file):
@@ -50,11 +53,13 @@ def check_status():
             stream_duration = int(stream_duration)
 
             duration_hours = stream_duration // 3600
-            duration_minutes = (stream_duration - (duration_hours * 3600)) // 60
-            duration_seconds = stream_duration - ((duration_hours * 3600) + (duration_minutes * 60))
+            duration_minutes = (
+                stream_duration - (duration_hours * 3600)) // 60
+            duration_seconds = stream_duration - \
+                ((duration_hours * 3600) + (duration_minutes * 60))
 
-            print('{} has been streaming for: {} hours, {} minutes, and {} seconds.'.format(streamer_name.capitalize(), duration_hours, duration_minutes, duration_seconds))
-            pass
+            print('{} has been streaming for: {} hours, {} minutes, and {} seconds.'.format(
+                streamer_name.capitalize(), duration_hours, duration_minutes, duration_seconds))
 
         if not os.path.exists(temp_file):
             print('{} is online, opening in your default browser'.format(streamer_name))
@@ -73,7 +78,7 @@ def check_status():
 
         if not os.path.exists(temp_file):
             print('{} is offline, checking again in 5 seconds'.format(streamer_name))
-            pass
+
 
 def the_whole_thing():
     os.system('cls')
@@ -83,9 +88,11 @@ def the_whole_thing():
     print('#########################\n')
     check_status()
 
+
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(the_whole_thing, 'interval', seconds=int(stalking_interval), misfire_grace_time=300)
+    scheduler.add_job(the_whole_thing, 'interval', seconds=int(
+        stalking_interval), misfire_grace_time=300)
     scheduler.start()
 
     try:
