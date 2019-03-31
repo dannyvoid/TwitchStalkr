@@ -1,0 +1,7 @@
+[stalker]
+client_id = yourtwitchclientid
+interval_in_seconds = 5
+temp_file = log/is_live
+
+[default]
+streamer_name =
