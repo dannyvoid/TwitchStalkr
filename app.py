@@ -5,15 +5,25 @@ import time
 import datetime
 import os
 from os import system
+from configparser import ConfigParser
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-os.system('cls')
+config = ConfigParser()
+config.read('config.ini')
 
+client_id = config.get('stalker', 'client_id')
+stalking_interval = config.get('stalker', 'interval_in_seconds')
+streamer_name = config.get('default', 'streamer_name')
+
+os.system('cls')
 system('title Twitch Stalkr v1.0')
 
-streamer_name = input('Streamer to stalk: ')
-client_id = '' # your twitch client id
+if not streamer_name:
+    streamer_name = input('Streamer to stalk: ')
+else:
+    streamer_name = streamer_name
+
 streamer_url = 'https://twitch.tv/{}'.format(streamer_name)
 
 system('title Stalking {}'.format(streamer_name.capitalize()))
@@ -25,7 +35,8 @@ def is_streaming(streamer_name):
     return streamer['stream'] is not None
 
 def check_status():
-    temp_file = os.path.join('C:/Users/{}/Documents'.format(os.getlogin()), '{}_is_live'.format(streamer_name))
+    temp_file_location = config.get('stalker', 'temp_file')
+    temp_file = os.path.join('{}.{}'.format(temp_file_location, streamer_name))
 
     if is_streaming(streamer_name):
         if os.path.exists(temp_file):
@@ -70,13 +81,12 @@ def the_whole_thing():
     print('#########################')
     print('###   Twitch Stalkr   ###')
     print('###       V 1.0       ###')
-    print('#########################')
-    print('')
+    print('#########################\n')
     check_status()
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(the_whole_thing, 'interval', seconds=5, misfire_grace_time=100)
+    scheduler.add_job(the_whole_thing, 'interval', seconds=int(stalking_interval), misfire_grace_time=300)
     scheduler.start()
 
     try:
