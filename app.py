@@ -2,7 +2,6 @@ import requests
 import json
 import webbrowser
 import time
-import datetime
 import os
 from os import system
 from configparser import ConfigParser
