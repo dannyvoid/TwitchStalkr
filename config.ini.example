@@ -5,4 +5,4 @@ interval_in_seconds = 5
 
 [temp_file]
 directory = log
-file_prefix = is_live
+file_suffix = is_live
