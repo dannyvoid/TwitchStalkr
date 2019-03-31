@@ -36,9 +36,9 @@ def is_streaming(streamer_name):
 
 def check_status():
     temp_file_dir = config.get('temp_file', 'directory')
-    temp_file_prefix = config.get('temp_file', 'file_prefix')
+    temp_file_suffix = config.get('temp_file', 'file_suffix')
     temp_file = os.path.join(temp_file_dir, '{}.{}'.format(
-        temp_file_prefix, streamer_name))
+        streamer_name, temp_file_suffix))
 
     if is_streaming(streamer_name):
         if os.path.exists(temp_file):
@@ -82,17 +82,19 @@ def check_status():
 
 def the_whole_thing():
     os.system('cls')
+
     print('#########################')
     print('###   Twitch Stalkr   ###')
     print('###       V 0.5       ###')
     print('#########################\n')
+
     check_status()
 
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
     scheduler.add_job(the_whole_thing, 'interval', seconds=int(
-        stalking_interval), misfire_grace_time=300)
+        stalking_interval), misfire_grace_time=300, max_instances=10)
     scheduler.start()
 
     try:
