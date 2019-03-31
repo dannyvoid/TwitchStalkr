@@ -9,15 +9,15 @@ from configparser import ConfigParser
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+os.system('cls')
+system('title Twitch Stalkr v1.0')
+
 config = ConfigParser()
 config.read('config.ini')
 
 client_id = config.get('stalker', 'client_id')
 stalking_interval = config.get('stalker', 'interval_in_seconds')
 streamer_name = config.get('default', 'streamer_name')
-
-os.system('cls')
-system('title Twitch Stalkr v1.0')
 
 if not streamer_name:
     streamer_name = input('Streamer to stalk: ')
@@ -80,7 +80,7 @@ def the_whole_thing():
     os.system('cls')
     print('#########################')
     print('###   Twitch Stalkr   ###')
-    print('###       V 1.0       ###')
+    print('###       V 0.5       ###')
     print('#########################\n')
     check_status()
 
