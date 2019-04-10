@@ -8,7 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from configparser import ConfigParser
 
 os.system('cls')
-os.system('title Twitch Stalkr v1.0')
+os.system('title Twitch Stalkr v0.6')
 
 config = ConfigParser()
 config.read('config.ini')
