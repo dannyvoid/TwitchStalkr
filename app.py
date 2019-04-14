@@ -1,15 +1,18 @@
 import json
 import os
+import sys
 import requests
 import time
 import schedule
 import webbrowser
+import cursor
 
 from configparser import ConfigParser
 
-ver = '0.9'
+cursor.hide()
 
-os.system('cls')
+ver = '1.0'
+
 os.system('title Twitch Stalkr v {}'.format(ver))
 
 config = ConfigParser()
@@ -48,7 +51,11 @@ def telegram(message):
 
 
 def check_status():
-    check_interval = int(config.get('default', 'interval_in_seconds'))
+    check_interval = config.get('default', 'interval_in_seconds')
+    check_interval = int(check_interval)
+
+    double_protection = config.get('default', 'double_protection')
+    double_protection = int(double_protection)
 
     temp_file_dir = config.get('temp_file', 'directory')
     temp_file_suffix = config.get('temp_file', 'file_suffix')
@@ -76,12 +83,21 @@ def check_status():
             print('{} has been streaming for: {} hours, {} minutes, and {} seconds.'.format(
                 streamer_name.capitalize(), duration_hours, duration_minutes, duration_seconds))
 
+            sys.stdout.write("\033[F")
+            sys.stdout.write("\033[K")
+
         if not os.path.exists(temp_file):
             if token and chat_id:
                 telegram('[{}]({}) is now streaming!'.format(
                     streamer_name.capitalize(), streamer_url))
 
-            print('{} is online, opening in your default browser'.format(streamer_name))
+            print('{} is online, opening in your default browser.'.format(
+                streamer_name.capitalize()))
+
+            time.sleep(5)
+
+            sys.stdout.write("\033[F")
+            sys.stdout.write("\033[K")
 
             start_time = time.time()
 
@@ -90,7 +106,17 @@ def check_status():
 
             webbrowser.open_new_tab(streamer_url)
 
-            time.sleep(30)
+            while (double_protection):
+                if double_protection > 1:
+                    print('{} is online, waiting for {} seconds. '.format(
+                        streamer_name.capitalize(), str(double_protection)), end='\r')
+                    double_protection -= 1
+                    time.sleep(1)
+                else:
+                    print('{} is online, waiting for {} second. '.format(
+                        streamer_name.capitalize(), str(double_protection)), end='\r')
+                    double_protection -= 1
+                    time.sleep(1)
 
     if not is_streaming(streamer_name):
         if os.path.exists(temp_file):
@@ -99,30 +125,24 @@ def check_status():
         if not os.path.exists(temp_file):
             while (check_interval):
                 if check_interval > 1:
-                    print('{} is offline, checking again in {} seconds '.format(
-                        streamer_name, str(check_interval)), end='\r')
+                    print('{} is offline, checking again in {} seconds. '.format(
+                        streamer_name.capitalize(), str(check_interval)), end='\r')
                     check_interval -= 1
                     time.sleep(1)
                 else:
-                    print('{} is offline, checking again in {} second '.format(
-                        streamer_name, str(check_interval)), end='\r')
+                    print('{} is offline, checking again in {} second. '.format(
+                        streamer_name.capitalize(), str(check_interval)), end='\r')
                     check_interval -= 1
                     time.sleep(1)
 
 
-def the_whole_thing():
-    os.system('cls')
+print('#########################')
+print('###   Twitch Stalkr   ###')
+print('###       V {}       ###'.format(ver))
+print('#########################\n')
 
-    print('#########################')
-    print('###   Twitch Stalkr   ###')
-    print('###       V {}       ###'.format(ver))
-    print('#########################\n')
-
-    check_status()
-
-
-schedule.every(0.5).seconds.do(the_whole_thing)
+schedule.every(0.5).seconds.do(check_status)
 
 while True:
     schedule.run_pending()
-time.sleep(1)
+time.sleep(0.7)
