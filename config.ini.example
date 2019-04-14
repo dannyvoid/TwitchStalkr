@@ -1,7 +1,8 @@
 [default]
 streamer_name =
-client_id = yourtwitchclientid
+client_id = your_twitch_client_id
 interval_in_seconds = 10
+double_protection = 15
 
 [temp_file]
 directory = log
