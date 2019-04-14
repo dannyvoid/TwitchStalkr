@@ -1,7 +1,7 @@
 [default]
 streamer_name =
 client_id = yourtwitchclientid
-interval_in_seconds = 5
+interval_in_seconds = 10
 
 [temp_file]
 directory = log
