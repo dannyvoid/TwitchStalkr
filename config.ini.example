@@ -2,11 +2,6 @@
 streamer_name =
 client_id = your_twitch_client_id
 int_in_seconds = 10
-double_protection = 15
-
-[temp_file]
-directory = log
-file_suffix = is_live
 
 [telegram]
 token =

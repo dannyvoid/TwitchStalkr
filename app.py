@@ -14,7 +14,7 @@ from configparser import ConfigParser
 cursor.hide()
 
 appname = 'Twitch Stalkr'
-ver = '1.3'
+ver = '1.4'
 
 os.system(f'title {appname} v{ver}')
 
@@ -24,6 +24,8 @@ config.read('config.ini')
 client_id = config.get('default', 'client_id')
 check_int = int(config.get('default', 'int_in_seconds'))
 streamer_name = config.get('default', 'streamer_name')
+
+temp_file = os.path.join('log', f'{streamer_name.lower()}.is_live')
 
 token = config.get('telegram', 'token')
 chat_id = config.get('telegram', 'chat_id')
@@ -53,8 +55,10 @@ def stream(streamer_name):
     streamer = json.loads(streamer_html.content)
     return streamer
 
+
 def streaming(streamer_name):
     return stream(streamer_name)['stream'] is not None
+
 
 def stream_created_at(streamer_name):
     created_at = stream(streamer_name)['stream']['created_at']
@@ -69,11 +73,21 @@ def telegram(message):
     return response.json()
 
 
-def status():
-    temp_file_dir = config.get('temp_file', 'directory')
-    temp_file_suffix = config.get('temp_file', 'file_suffix')
-    temp_file = os.path.join(temp_file_dir, f'{streamer_name.lower()}.{temp_file_suffix}')
+def clean_exit():
+    try:
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        os.system('cls||clear')
+        sys.exit(0)
 
+    except SystemExit:
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        os.system('cls||clear')
+        sys.exit(0)
+
+
+def status():
     if streaming(streamer_name):
         if os.path.exists(temp_file):
 
@@ -124,16 +138,15 @@ def status():
                 telegram(f'[{streamer_name}]({streamer_url}) is now streaming!')
 
             print(f'{streamer_name} is online, opening in your default browser.', end='\033[K\r', flush=True)
-            time.sleep(5)
-
-            start_t = time.time()
+            time.sleep(3)
 
             with open(temp_file, 'w+') as timestamp:
+                start_t = time.time()
                 timestamp.write(str(start_t))
 
             webbrowser.open_new_tab(streamer_url)
 
-            double_protection = int(config.get('default', 'double_protection'))
+            double_protection = 15
 
             while double_protection:
                 if double_protection > 1:
@@ -169,21 +182,25 @@ def lets_do_this():
     if online():
         try:
             status()
-        except Exception:
-            pass
+        except KeyboardInterrupt:
+            clean_exit()
     else:
-        check_int = int(config.get('default', 'int_in_seconds'))
+        try:
+            check_int = int(config.get('default', 'int_in_seconds'))
 
-        while check_int:
-            if check_int > 1:
-                print(f'You are not connected to the internet. Trying again in {check_int} seconds. ', end='\033[K\r', flush=True)
-                check_int -= 1
-                time.sleep(1)
+            while check_int:
+                if check_int > 1:
+                    print(f'You are not connected to the internet. Trying again in {check_int} seconds. ', end='\033[K\r', flush=True)
+                    check_int -= 1
+                    time.sleep(1)
 
-            else:
-                print(f'You are not connected to the internet. Trying again in {check_int} second.', end='\033[K\r', flush=True)
-                check_int -= 1
-                time.sleep(1)
+                else:
+                    print(f'You are not connected to the internet. Trying again in {check_int} second.', end='\033[K\r', flush=True)
+                    check_int -= 1
+                    time.sleep(1)
+
+        except KeyboardInterrupt:
+            clean_exit()
 
 
 print(
@@ -194,8 +211,6 @@ print(
 )
 
 schedule.every(0.1).seconds.do(lets_do_this)
-
-print 
 
 while True:
     schedule.run_pending()
