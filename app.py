@@ -14,7 +14,7 @@ from configparser import ConfigParser
 cursor.hide()
 
 appname = 'Twitch Stalkr'
-ver = '1.4'
+ver = '1.4.1'
 
 os.system(f'title {appname} v{ver}')
 
@@ -78,13 +78,10 @@ def clean_exit():
         if os.path.exists(temp_file):
             os.remove(temp_file)
         os.system('cls||clear')
-        sys.exit(0)
+        sys.exit()
 
-    except SystemExit:
-        if os.path.exists(temp_file):
-            os.remove(temp_file)
-        os.system('cls||clear')
-        sys.exit(0)
+    except Exception:
+        pass
 
 
 def status():
@@ -199,8 +196,8 @@ def lets_do_this():
                     check_int -= 1
                     time.sleep(1)
 
-        except KeyboardInterrupt:
-            clean_exit()
+        except Exception:
+            pass
 
 
 print(
