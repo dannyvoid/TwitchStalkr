@@ -7,13 +7,14 @@ import schedule
 import socket
 import webbrowser
 import cursor
+import calendar
 
 from configparser import ConfigParser
 
 cursor.hide()
 
 appname = 'Twitch Stalkr'
-ver = '1.2'
+ver = '1.3'
 
 os.system(f'title {appname} v{ver}')
 
@@ -46,11 +47,20 @@ def online():
     return False
 
 
-def broadcasting(streamer_name):
+def stream(streamer_name):
     twitch_api_stream_url = f'https://api.twitch.tv/kraken/streams/{streamer_name.lower()}?client_id={client_id}'
     streamer_html = requests.get(twitch_api_stream_url)
     streamer = json.loads(streamer_html.content)
-    return streamer['stream'] is not None
+    return streamer
+
+def streaming(streamer_name):
+    return stream(streamer_name)['stream'] is not None
+
+def stream_created_at(streamer_name):
+    created_at = stream(streamer_name)['stream']['created_at']
+    created_at = created_at.replace('T', ' ').replace('Z', '')
+    created_at = calendar.timegm(time.strptime(created_at, '%Y-%m-%d %H:%M:%S'))
+    return float(created_at)
 
 
 def telegram(message):
@@ -64,34 +74,50 @@ def status():
     temp_file_suffix = config.get('temp_file', 'file_suffix')
     temp_file = os.path.join(temp_file_dir, f'{streamer_name.lower()}.{temp_file_suffix}')
 
-    if broadcasting(streamer_name):
+    if streaming(streamer_name):
         if os.path.exists(temp_file):
-            with open(temp_file, 'r') as start_t:
-                start_t = start_t.readline()
 
-            start_t = float(start_t)
+            start_t = stream_created_at(streamer_name)
             current_t = time.time()
 
             dur = current_t - start_t
             dur = int(dur)
 
-            hrs = dur // 3600
-            mins = (dur - (hrs * 3600)) // 60
-            secs = dur - ((hrs * 3600) + (mins * 60))
+            days = dur // 86400
+            hrs = (dur - (days * 86400)) // 3600
+            mins = (dur - ((days * 86400) + (hrs * 3600))) // 60
+            sec = dur - ((days * 86400) + (hrs * 3600) + (mins * 60))
 
-            if secs == 1:
-                print(
-                    f'{streamer_name} has been streaming for: '
-                    f'{hrs} hours, {mins} minutes, and '
-                    f'{secs} second.', end='\033[K\r', flush=True
-                )
 
+            if days > 0:
+                if sec == 1:
+                    print(
+                        f'{streamer_name} has been streaming for: '
+                        f'{days} days, {hrs} hours, {mins} minutes, and '
+                        f'{sec} second.', end='\033[K\r', flush=True
+                    )
+
+                else:
+                    print(
+                        f'{streamer_name} has been streaming for: '
+                        f'{days} days, {hrs} hours, {mins} minutes, and '
+                        f'{sec} seconds.', end='\033[K\r', flush=True
+                    )
+                    
             else:
-                print(
-                    f'{streamer_name} has been streaming for: '
-                    f'{hrs} hours, {mins} minutes, and '
-                    f'{secs} seconds.', end='\033[K\r', flush=True
-                )
+                if sec == 1:
+                    print(
+                        f'{streamer_name} has been streaming for: '
+                        f'{hrs} hours, {mins} minutes, and '
+                        f'{sec} second.', end='\033[K\r', flush=True
+                    )
+
+                else:
+                    print(
+                        f'{streamer_name} has been streaming for: '
+                        f'{hrs} hours, {mins} minutes, and '
+                        f'{sec} seconds.', end='\033[K\r', flush=True
+                    )
 
         if not os.path.exists(temp_file):
             if token and chat_id:
@@ -120,7 +146,7 @@ def status():
                     double_protection -= 1
                     time.sleep(1)
 
-    if not broadcasting(streamer_name):
+    if not streaming(streamer_name):
         if os.path.exists(temp_file):
             os.remove(temp_file)
 
@@ -168,6 +194,8 @@ print(
 )
 
 schedule.every(0.1).seconds.do(lets_do_this)
+
+print 
 
 while True:
     schedule.run_pending()
